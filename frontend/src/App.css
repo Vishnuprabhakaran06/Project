@@ -1,0 +1,766 @@
+:root {
+  --blue: #2563eb;
+  --blue-light: #eff6ff;
+  --amber: #d97706;
+  --amber-light: #fffbeb;
+  --red: #dc2626;
+  --red-light: #fef2f2;
+  --green: #10b981;
+  --green-light: #ecfdf5;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-500: #6b7280;
+  --gray-700: #374151;
+  --gray-900: #111827;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: #f8fafc;
+  color: var(--gray-900);
+  line-height: 1.5;
+}
+
+.dashboard {
+  min-height: 100vh;
+  padding: 48px 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── 9. Minor Polish: Header Alignment & Spacing ── */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.header-title h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gray-900);
+  letter-spacing: -0.02em;
+}
+
+.header-subtitle {
+  margin: 4px 0 0 0;
+  color: var(--gray-500);
+  font-size: 14px;
+}
+
+.tenant-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tenant-selector label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray-500);
+}
+
+.tenant-selector select {
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--gray-300);
+  font-size: 14px;
+  background: white;
+  color: var(--gray-700);
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.tenant-selector select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* ── Status Banner & Toasts ── */
+.status-banner {
+  text-align: center;
+  padding: 16px;
+  margin-bottom: 24px;
+  border-radius: 10px;
+  background: var(--blue-light);
+  color: var(--blue);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.status-banner.status-error {
+  background: var(--red-light);
+  color: var(--red);
+  border: 1px solid #fecaca;
+}
+
+.toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  animation: slideIn 0.25s ease-out;
+}
+
+.toast-success {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.toast-error {
+  background: var(--red-light);
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── 2. Warning State Banners ── */
+.alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.alert-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.alert-danger {
+  background: var(--red-light);
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+}
+
+.alert-warning {
+  background: var(--amber-light);
+  border: 1px solid #fcd34d;
+  color: #92400e;
+}
+
+/* ── 6. Visual Hierarchy: Usage Hero Card ── */
+.hero-card {
+  background: white;
+  border-radius: 16px;
+  padding: 28px 32px;
+  border: 1px solid var(--gray-200);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  margin-bottom: 28px;
+  transition: border-color 0.2s;
+}
+
+.hero-card.hero-over {
+  border-color: #fca5a5;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08);
+}
+
+.hero-card.hero-warn {
+  border-color: #fcd34d;
+}
+
+.hero-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.hero-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--gray-500);
+}
+
+.hero-number {
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1.15;
+  margin: 6px 0 2px;
+  letter-spacing: -0.03em;
+}
+
+.hero-limit {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--gray-500);
+}
+
+.hero-sub {
+  font-size: 14px;
+  color: var(--gray-500);
+}
+
+/* ── 4. Billing Period Box ── */
+.billing-period-card {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  padding: 12px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: right;
+  min-width: 220px;
+}
+
+.bp-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gray-500);
+}
+
+.bp-dates {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.bp-reset {
+  font-size: 12px;
+  color: var(--blue);
+  font-weight: 500;
+}
+
+/* ── 1. Progress Bar & Overage Indicators ── */
+.progress-container {
+  margin-bottom: 24px;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.progress-bar-track {
+  position: relative;
+  width: 100%;
+  height: 14px;
+  background: var(--gray-200);
+  border-radius: 9999px;
+  overflow: visible;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.35s ease, background-color 0.25s ease;
+}
+
+/* Limit Line Marker at 100% when over */
+.progress-limit-marker {
+  position: absolute;
+  top: -3px;
+  right: 0;
+  width: 3px;
+  height: 20px;
+  background: var(--gray-900);
+  border-radius: 2px;
+  z-index: 2;
+}
+
+.progress-overage-legend {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+/* ── 8. Demo Button ── */
+.hero-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.usage-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: var(--blue);
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.15s, transform 0.1s;
+}
+
+.usage-button:hover {
+  background: #1d4ed8;
+}
+
+.usage-button:active {
+  transform: scale(0.98);
+}
+
+/* ── 6. Metrics Secondary Grid ── */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 1024px) {
+  .summary-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.card {
+  background: white;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--gray-200);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.card span {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-500);
+  margin-bottom: 6px;
+}
+
+.card strong {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.card-danger {
+  border-color: #fecaca;
+  background: #fffafa;
+}
+
+/* ── 3. Cost Summary: Estimated Invoice Card ── */
+.cost-summary-card {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 14px;
+  padding: 24px 28px;
+  margin-bottom: 28px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.cost-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.cost-summary-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.section-subtitle {
+  margin: 3px 0 0;
+  font-size: 13px;
+  color: var(--gray-500);
+}
+
+.invoice-badge {
+  background: var(--blue-light);
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  letter-spacing: 0.04em;
+}
+
+.cost-breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cost-breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--gray-700);
+  padding: 6px 0;
+}
+
+.cost-breakdown-overage {
+  color: #991b1b;
+}
+
+.cost-item-price {
+  font-weight: 600;
+}
+
+.cost-breakdown-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 14px;
+  margin-top: 6px;
+  border-top: 2px dashed var(--gray-200);
+}
+
+.total-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.total-price {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--blue);
+  letter-spacing: -0.02em;
+}
+
+/* ── 5. Usage History Section ── */
+.history-section {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 14px;
+  padding: 24px 28px;
+  margin-bottom: 28px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.history-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.history-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-500);
+  background: var(--gray-100);
+  padding: 4px 10px;
+  border-radius: 9999px;
+}
+
+.empty-history {
+  color: var(--gray-500);
+  font-size: 14px;
+  text-align: center;
+  padding: 24px 0;
+}
+
+.history-table-container {
+  overflow-x: auto;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.history-table th {
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--gray-200);
+  color: var(--gray-500);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.history-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--gray-100);
+  color: var(--gray-700);
+}
+
+.history-table tr:last-child td {
+  border-bottom: none;
+}
+
+.history-table tr:hover td {
+  background: var(--gray-50);
+}
+
+.id-cell {
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--gray-500);
+}
+
+.badge-event-type {
+  display: inline-block;
+  background: #ede9fe;
+  color: #6d28d9;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.time-cell {
+  color: var(--gray-500);
+}
+
+.badge-status-recorded {
+  display: inline-block;
+  background: var(--green-light);
+  color: #065f46;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ── 7. Plan Comparison Cards ── */
+.plans-section {
+  margin-top: 12px;
+}
+
+.plans-section h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 16px;
+}
+
+@media (max-width: 640px) {
+  .plans-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.plan-card {
+  position: relative;
+  background: white;
+  padding: 26px 28px;
+  border-radius: 14px;
+  border: 2px solid var(--gray-200);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.plan-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.plan-card.active-plan {
+  border-color: var(--blue);
+  background: #fbfdff;
+}
+
+.recommended-plan-card {
+  border-color: #818cf8;
+}
+
+.recommended-badge {
+  position: absolute;
+  top: -12px;
+  right: 20px;
+  background: #4f46e5;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+}
+
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.plan-card h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.current-badge {
+  background: var(--blue);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.plan-pricing-row {
+  margin: 6px 0 16px;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.plan-price-val {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--gray-900);
+}
+
+.plan-price-period {
+  font-size: 14px;
+  color: var(--gray-500);
+}
+
+.plan-features {
+  margin-bottom: 16px;
+  flex-grow: 1;
+}
+
+.plan-features .limit {
+  margin: 0 0 6px;
+  font-size: 15px;
+  color: var(--gray-700);
+}
+
+.plan-overage-text {
+  margin: 0;
+  font-size: 13px;
+  color: var(--gray-500);
+}
+
+/* Savings Hint Callout */
+.savings-hint {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.savings-hint-positive {
+  background: var(--green-light);
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.savings-hint-neutral {
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+
+.plan-switch-btn {
+  margin-top: auto;
+  width: 100%;
+  padding: 11px;
+  border-radius: 8px;
+  border: none;
+  background: var(--blue);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.plan-switch-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.plan-switch-btn:disabled {
+  background: var(--gray-300);
+  color: var(--gray-700);
+  cursor: default;
+}
+
+/* ── Utility color classes ── */
+.text-red {
+  color: var(--red) !important;
+}
+
+.text-amber {
+  color: var(--amber) !important;
+}
+
+.text-blue {
+  color: var(--blue) !important;
+}
