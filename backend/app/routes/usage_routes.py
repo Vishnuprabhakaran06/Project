@@ -124,19 +124,16 @@ def get_usage_summary(
     else:
         cycle_end = cycle_start + timedelta(days=29)
 
-    # Count usage only for this billing cycle
-    cycle_start_datetime = datetime.combine(
-        cycle_start,
-        datetime.min.time()
-    )
+    # Count usage only from the exact subscription start time
+    cycle_start_datetime = subscription.start_date
 
     if subscription.end_date:
-        cycle_end_datetime = subscription.end_date
+      cycle_end_datetime = subscription.end_date
     else:
-        cycle_end_datetime = datetime.combine(
-            cycle_end + timedelta(days=1),
-            datetime.min.time()
-        )
+     cycle_end_datetime = datetime.combine(
+        cycle_end + timedelta(days=1),
+        datetime.min.time()
+    )
 
     total_usage = (
         db.query(UsageRecord)
@@ -184,6 +181,7 @@ def get_usage_summary(
 
         "billing_cycle": {
             "start_date": cycle_start.isoformat(),
+            "cycle_start_datetime": subscription.start_date.isoformat() if subscription.start_date else None,
             "end_date": cycle_end.isoformat(),
             "days_remaining": days_remaining
         }
@@ -193,7 +191,7 @@ def get_usage_summary(
 @router.get("/recent")
 def get_recent_usage(
     current_user: dict = Depends(get_current_customer),
-    limit: int = 20,
+    limit: int = 100,
     db: Session = Depends(get_db)
 ):
     tenant_id = current_user.get("tenant_id")
@@ -205,6 +203,20 @@ def get_recent_usage(
             detail="Tenant not found"
         )
 
+    subscription = (
+        db.query(Subscription)
+        .filter(Subscription.tenant_id == tenant_id)
+        .first()
+    )
+
+    current_plan_name = None
+    cycle_start = None
+    if subscription:
+        plan = db.query(Plan).filter(Plan.id == subscription.plan_id).first()
+        if plan:
+            current_plan_name = plan.name
+        cycle_start = subscription.start_date
+
     records = (
         db.query(UsageRecord)
         .filter(UsageRecord.tenant_id == tenant_id)
@@ -213,11 +225,19 @@ def get_recent_usage(
         .all()
     )
 
+    all_plans = db.query(Plan).all()
+    other_plan = next((p.name for p in all_plans if p.name != current_plan_name), "Starter")
+
     return [
         {
             "id": r.id,
             "usage_type": r.usage_type,
-            "created_at": r.created_at.isoformat()
+            "created_at": r.created_at.isoformat(),
+            "plan": (
+                current_plan_name
+                if (cycle_start and r.created_at >= cycle_start)
+                else other_plan
+            )
         }
         for r in records
     ]
