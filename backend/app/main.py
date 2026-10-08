@@ -6,6 +6,8 @@ from app.models.plan import Plan
 from app.models.tenant import Tenant
 from app.models.subscription import Subscription 
 from app.models.usage_record import UsageRecord
+from app.models.user import User
+from app.routes.auth_routes import router as auth_router
 
 from app.routes.plan_routes import router as plan_router
 from app.routes.tenant_routes import router as tenant_router
@@ -30,6 +32,7 @@ app.include_router(plan_router)
 app.include_router(subscription_router)
 app.include_router(usage_router)
 app.include_router(api_router)
+app.include_router(auth_router)
 
 @app.get("/")
 def root():

@@ -7,6 +7,7 @@ from app.models.usage_record import UsageRecord, UsageType
 from app.models.tenant import Tenant
 from app.models.subscription import Subscription
 from app.models.plan import Plan
+from app.dependencies import get_current_customer, get_current_admin
 
 router = APIRouter(
     prefix="/usage",
@@ -16,10 +17,33 @@ router = APIRouter(
 
 @router.post("/")
 def record_usage(
-    tenant_id: int,
     usage_type: UsageType,
+    current_user: dict = Depends(get_current_customer),
     db: Session = Depends(get_db)
 ):
+    tenant_id = current_user.get("tenant_id")
+
+    subscription = (
+    db.query(Subscription)
+    .filter(Subscription.tenant_id == tenant_id)
+    .first()
+)
+
+    if not subscription:
+     raise HTTPException(
+        status_code=400,
+        detail="No active subscription found"
+    )
+
+    if subscription.end_date:
+     from datetime import datetime
+
+    if datetime.utcnow() >= subscription.end_date:
+        raise HTTPException(
+            status_code=400,
+            detail="Your subscription has expired. Please choose a plan."
+        )
+
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
 
     if not tenant:
@@ -39,12 +63,18 @@ def record_usage(
 
     return usage
 
-@router.get("/summary/{tenant_id}")
+@router.get("/summary")
 def get_usage_summary(
-    tenant_id: int,
+    current_user: dict = Depends(get_current_customer),
     db: Session = Depends(get_db)
 ):
-    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    tenant_id = current_user.get("tenant_id")
+
+    tenant = (
+        db.query(Tenant)
+        .filter(Tenant.id == tenant_id)
+        .first()
+    )
 
     if not tenant:
         raise HTTPException(
@@ -64,65 +94,109 @@ def get_usage_summary(
             detail="Subscription not found"
         )
 
-    plan = db.query(Plan).filter(Plan.id == subscription.plan_id).first()
+    # Subscription status
+    subscription_status = "ACTIVE"
+
+    if subscription.end_date:
+        if datetime.utcnow() >= subscription.end_date:
+            subscription_status = "EXPIRED"
+
+    # Get plan
+    plan = (
+        db.query(Plan)
+        .filter(Plan.id == subscription.plan_id)
+        .first()
+    )
+
+    if not plan:
+        raise HTTPException(
+            status_code=404,
+            detail="Plan not found"
+        )
+
+    # Billing cycle
+    today = datetime.utcnow().date()
+
+    cycle_start = subscription.start_date.date()
+
+    if subscription.end_date:
+        cycle_end = subscription.end_date.date() - timedelta(days=1)
+    else:
+        cycle_end = cycle_start + timedelta(days=29)
+
+    # Count usage only for this billing cycle
+    cycle_start_datetime = datetime.combine(
+        cycle_start,
+        datetime.min.time()
+    )
+
+    if subscription.end_date:
+        cycle_end_datetime = subscription.end_date
+    else:
+        cycle_end_datetime = datetime.combine(
+            cycle_end + timedelta(days=1),
+            datetime.min.time()
+        )
 
     total_usage = (
         db.query(UsageRecord)
-        .filter(UsageRecord.tenant_id == tenant_id)
+        .filter(
+            UsageRecord.tenant_id == tenant_id,
+            UsageRecord.created_at >= cycle_start_datetime,
+            UsageRecord.created_at < cycle_end_datetime
+        )
         .count()
     )
 
+    # Usage calculations
     plan_limit = plan.request_limit
 
-    remaining_usage = max(plan_limit - total_usage, 0)
+    remaining_usage = max(
+        plan_limit - total_usage,
+        0
+    )
 
-    overage = max(total_usage - plan_limit, 0)
+    overage = max(
+        total_usage - plan_limit,
+        0
+    )
 
-    overage_cost = round(overage * float(plan.overage_price), 2)
+    overage_cost = round(
+        overage * float(plan.overage_price),
+        2
+    )
 
-    # Billing cycle based on subscription start date
-    today = datetime.utcnow().date()
-
-    subscription_start = subscription.start_date.date()
-
-    cycle_start = subscription_start
-
-# Calculate the end of the current 30-day billing cycle
-    cycle_end = cycle_start + timedelta(days=29)
-
-# If today's date is beyond the first cycle,
-# calculate the current cycle
-    while today > cycle_end:
-      cycle_start = cycle_end + timedelta(days=1)
-      cycle_end = cycle_start + timedelta(days=29)
-
-    days_remaining = (cycle_end - today).days
+    days_remaining = max(
+        (cycle_end - today).days,
+        0
+    )
 
     return {
-    "tenant_id": tenant_id,
-    "plan": plan.name,
-    "total_usage": total_usage,
-    "plan_limit": plan_limit,
-    "remaining_usage": remaining_usage,
-    "overage": overage,
-    "overage_cost": overage_cost,
+        "tenant_id": tenant_id,
+        "plan": plan.name,
+        "subscription_status": subscription_status,
+        "total_usage": total_usage,
+        "plan_limit": plan_limit,
+        "remaining_usage": remaining_usage,
+        "overage": overage,
+        "overage_cost": overage_cost,
+        "monthly_price": float(plan.monthly_price),
 
-    "monthly_price": float(plan.monthly_price),
-
-    "billing_cycle": {
-        "start_date": cycle_start.isoformat(),
-        "end_date": cycle_end.isoformat(),
-        "days_remaining": days_remaining
+        "billing_cycle": {
+            "start_date": cycle_start.isoformat(),
+            "end_date": cycle_end.isoformat(),
+            "days_remaining": days_remaining
+        }
     }
-}
 
 
-@router.get("/recent/{tenant_id}")
+@router.get("/recent")
 def get_recent_usage(
-    tenant_id: int,
+    current_user: dict = Depends(get_current_customer),
     limit: int = 20,
     db: Session = Depends(get_db)
 ):
+    tenant_id = current_user.get("tenant_id")
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
 
     if not tenant:
@@ -168,3 +242,80 @@ def get_usage(
         .all()
     )
 
+
+@router.get("/admin/summary")
+def get_admin_usage_summary(
+    current_user: dict = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    subscriptions = (
+        db.query(Subscription)
+        .all()
+    )
+
+    result = []
+
+    for subscription in subscriptions:
+        tenant_id = subscription.tenant_id
+
+        plan = (
+            db.query(Plan)
+            .filter(Plan.id == subscription.plan_id)
+            .first()
+        )
+
+        tenant = (
+            db.query(Tenant)
+            .filter(Tenant.id == tenant_id)
+            .first()
+        )
+
+        if not plan or not tenant:
+            continue
+
+        cycle_start = subscription.start_date
+
+        if subscription.end_date:
+            cycle_end = subscription.end_date
+        else:
+            cycle_end = datetime.utcnow()
+
+        total_usage = (
+            db.query(UsageRecord)
+            .filter(
+                UsageRecord.tenant_id == tenant_id,
+                UsageRecord.created_at >= cycle_start,
+                UsageRecord.created_at < cycle_end
+            )
+            .count()
+        )
+
+        plan_limit = plan.request_limit
+
+        remaining_usage = max(
+            plan_limit - total_usage,
+            0
+        )
+
+        overage = max(
+            total_usage - plan_limit,
+            0
+        )
+
+        overage_cost = round(
+            overage * float(plan.overage_price),
+            2
+        )
+
+        result.append({
+            "tenant_id": tenant_id,
+            "tenant_name": tenant.name,
+            "plan": plan.name,
+            "total_usage": total_usage,
+            "plan_limit": plan_limit,
+            "remaining_usage": remaining_usage,
+            "overage": overage,
+            "overage_cost": overage_cost
+        })
+
+    return result

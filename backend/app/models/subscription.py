@@ -30,3 +30,8 @@ class Subscription(Base):
         nullable=False,
         default=lambda: datetime.now(timezone.utc)
     )
+
+    end_date: Mapped[datetime | None] = mapped_column(
+        DateTime,
+        nullable=True
+    )

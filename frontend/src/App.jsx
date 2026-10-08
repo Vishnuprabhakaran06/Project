@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "./api";
+import Login from "./Login";
+import AdminDashboard from "./AdminDashboard";
 import "./App.css";
 
 // ── helpers ───────────────────────────────────────────────────
@@ -37,18 +39,24 @@ function progressColor(pct) {
 // ── component ─────────────────────────────────────────────────
 function App() {
   const [plans, setPlans] = useState([]);
-  const [tenants, setTenants] = useState([]);
-  const [selectedTenantId, setSelectedTenantId] = useState(1);
+  // const [tenants, setTenants] = useState([]);
+  // const [selectedTenantId, setSelectedTenantId] = useState(1);
   const [summary, setSummary] = useState(null);
   const [recentUsage, setRecentUsage] = useState([]);
   const [loading, setLoading] = useState(true);
   const [summaryError, setSummaryError] = useState(null);
   const [toast, setToast] = useState(null);
 
+
   const showToast = (text, type = "success") => {
     setToast({ text, type });
     setTimeout(() => setToast(null), 3500);
   };
+
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
   // Load plans + tenants once
   useEffect(() => {
@@ -57,15 +65,15 @@ function App() {
       .then((r) => setPlans(r.data))
       .catch(() => showToast("Failed to load plans.", "error"));
 
-    api
-      .get("/tenants/")
-      .then((r) => setTenants(r.data))
-      .catch(() => showToast("Failed to load customers.", "error"));
+    // api
+    //   .get("/tenants/")
+    //   .then((r) => setTenants(r.data))
+    //   .catch(() => showToast("Failed to load customers.", "error"));
   }, []);
 
   // Load summary + recent usage whenever tenant changes
   useEffect(() => {
-    if (!selectedTenantId) return;
+    if (!user || user.role !== "CUSTOMER") return;
     let cancelled = false;
 
     const load = async () => {
@@ -75,8 +83,8 @@ function App() {
       setRecentUsage([]);
       try {
         const [sumRes, recentRes] = await Promise.all([
-          api.get(`/usage/summary/${selectedTenantId}`),
-          api.get(`/usage/recent/${selectedTenantId}`),
+          api.get(`/usage/summary`),
+          api.get(`/usage/recent`),
         ]);
         if (cancelled) return;
         setSummary(sumRes.data);
@@ -98,13 +106,13 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [selectedTenantId]);
+  }, [user]);
 
   const refreshData = async () => {
     try {
       const [sumRes, recentRes] = await Promise.all([
-        api.get(`/usage/summary/${selectedTenantId}`),
-        api.get(`/usage/recent/${selectedTenantId}`),
+        api.get(`/usage/summary`),
+        api.get(`/usage/recent`),
       ]);
       setSummary(sumRes.data);
       setRecentUsage(recentRes.data || []);
@@ -116,9 +124,7 @@ function App() {
   // Simulate an API call (demo)
   const recordUsage = async () => {
     try {
-      await api.post("/api/request", null, {
-        params: { tenant_id: selectedTenantId },
-      });
+      await api.post("/api/request", null);
       await refreshData();
       showToast("API call simulated successfully!");
     } catch {
@@ -130,7 +136,7 @@ function App() {
   const changePlan = async (planId) => {
     try {
       await api.post("/subscriptions/", null, {
-        params: { tenant_id: selectedTenantId, plan_id: planId },
+        params: { plan_id: planId },
       });
       await refreshData();
       showToast("Plan switched successfully!");
@@ -163,13 +169,34 @@ function App() {
     const altTotal =
       Number(plan.monthly_price || 0) +
       Math.max(summary.total_usage - plan.request_limit, 0) *
-        Number(plan.overage_price || 0);
+      Number(plan.overage_price || 0);
     const diff = currentTotal - altTotal;
     if (Math.abs(diff) < 0.01) return null;
     if (diff > 0) return `Switching would save you ${fmt(diff)} this cycle`;
     return `Switching would cost ${fmt(-diff)} more this cycle`;
   };
 
+  // Login handler
+  const handleLogin = (loggedInUser) => {
+    setUser(loggedInUser);
+  };
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+    setUser(null);
+  };
+
+  if (!user) {
+    return <Login onLogin={handleLogin} />;
+  }
+  if (user.role === "ADMIN") {
+  return (
+    <AdminDashboard
+      user={user}
+      onLogout={handleLogout}
+    />
+  );
+}
   // ── render ─────────────────────────────────────────────────
   return (
     <div className="dashboard">
@@ -188,20 +215,12 @@ function App() {
         </div>
 
         <div className="tenant-selector">
-          <label htmlFor="tenant-select">Select Customer</label>
-          <select
-            id="tenant-select"
-            value={selectedTenantId}
-            onChange={(e) => {
-              setSelectedTenantId(Number(e.target.value));
-            }}
-          >
-            {tenants.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
+          <p>
+            {user.email} ({user.role})
+          </p>
+          <button onClick={handleLogout}>
+            Logout
+          </button>
         </div>
       </header>
 
@@ -251,9 +270,8 @@ function App() {
 
           {/* ── 6. Visual Hierarchy: Usage Hero Card ── */}
           <section
-            className={`hero-card ${
-              isOver ? "hero-over" : isWarning ? "hero-warn" : ""
-            }`}
+            className={`hero-card ${isOver ? "hero-over" : isWarning ? "hero-warn" : ""
+              }`}
           >
             <div className="hero-top">
               <div className="hero-left">
@@ -264,8 +282,8 @@ function App() {
                       isOver
                         ? "text-red"
                         : isWarning
-                        ? "text-amber"
-                        : "text-blue"
+                          ? "text-amber"
+                          : "text-blue"
                     }
                   >
                     {summary.total_usage.toLocaleString()}
@@ -412,18 +430,16 @@ function App() {
               </div>
 
               <div
-                className={`cost-breakdown-item ${
-                  isOver ? "cost-breakdown-overage" : ""
-                }`}
+                className={`cost-breakdown-item ${isOver ? "cost-breakdown-overage" : ""
+                  }`}
               >
                 <span className="cost-item-name">
                   Overage Charges ({summary.overage} requests ×{" "}
                   {fmt(currentPlan?.overage_price || 0)})
                 </span>
                 <span
-                  className={`cost-item-price ${
-                    isOver ? "text-red" : ""
-                  }`}
+                  className={`cost-item-price ${isOver ? "text-red" : ""
+                    }`}
                 >
                   {fmt(summary.overage_cost)}
                 </span>
@@ -505,9 +521,8 @@ function App() {
 
                 return (
                   <div
-                    className={`plan-card ${
-                      isActive ? "active-plan" : ""
-                    } ${isPro ? "recommended-plan-card" : ""}`}
+                    className={`plan-card ${isActive ? "active-plan" : ""
+                      } ${isPro ? "recommended-plan-card" : ""}`}
                     key={plan.id}
                   >
                     {isPro && (
@@ -544,11 +559,10 @@ function App() {
 
                     {hint && (
                       <div
-                        className={`savings-hint ${
-                          hint.includes("save")
-                            ? "savings-hint-positive"
-                            : "savings-hint-neutral"
-                        }`}
+                        className={`savings-hint ${hint.includes("save")
+                          ? "savings-hint-positive"
+                          : "savings-hint-neutral"
+                          }`}
                       >
                         💡 {hint}
                       </div>

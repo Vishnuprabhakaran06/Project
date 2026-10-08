@@ -5,6 +5,8 @@ from app.database import get_db
 from app.models.tenant import Tenant
 from app.models.usage_record import UsageRecord
 
+from app.dependencies import get_current_customer
+
 router = APIRouter(
     prefix="/api",
     tags=["API"]
@@ -13,21 +15,10 @@ router = APIRouter(
 
 @router.post("/request")
 def process_request(
-    tenant_id: int,
+    current_user: dict = Depends(get_current_customer),
     db: Session = Depends(get_db)
 ):
-    # Check whether tenant exists
-    tenant = (
-        db.query(Tenant)
-        .filter(Tenant.id == tenant_id)
-        .first()
-    )
-
-    if not tenant:
-        raise HTTPException(
-            status_code=404,
-            detail="Tenant not found"
-        )
+    tenant_id = current_user.get("tenant_id")
 
     # Record usage automatically
     usage = UsageRecord(
