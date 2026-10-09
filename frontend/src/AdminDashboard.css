@@ -107,18 +107,24 @@
 /* ── KPI Stats Grid ── */
 .admin-stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
   margin-bottom: 28px;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
   .admin-stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 520px) {
   .admin-stats-grid {
     grid-template-columns: 1fr;
   }
@@ -423,4 +429,279 @@
   border: 1px solid #fecaca;
   color: #991b1b;
   font-size: 14px;
+}
+
+/* ── View Switcher & Tabs ── */
+.admin-header-tabs-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.admin-view-toggle {
+  display: inline-flex;
+  background: var(--gray-100);
+  padding: 4px;
+  border-radius: 10px;
+  gap: 4px;
+  border: 1px solid var(--gray-200);
+}
+
+.admin-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--gray-600);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.admin-view-btn:hover {
+  color: var(--gray-900);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.admin-view-btn.active {
+  background: #ffffff;
+  color: var(--gray-900);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.view-btn-icon {
+  font-size: 14px;
+}
+
+.admin-tab-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: var(--gray-200);
+  color: var(--gray-700);
+}
+
+.admin-view-btn.active .admin-tab-count-badge {
+  background: var(--blue-light);
+  color: var(--blue);
+}
+
+/* ── Messages count button in customer table ── */
+.col-msg-count-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--gray-200);
+  background: var(--gray-50);
+  color: var(--gray-600);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.col-msg-count-btn:hover {
+  background: var(--blue-light);
+  border-color: #bfdbfe;
+  color: var(--blue);
+  transform: translateY(-1px);
+}
+
+.col-msg-count-btn.has-messages {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.col-msg-count-btn.has-messages:hover {
+  background: #dbeafe;
+}
+
+/* ── Refresh button ── */
+.admin-refresh-button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--gray-300);
+  background: #ffffff;
+  color: var(--gray-700);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.admin-refresh-button:hover {
+  background: var(--gray-50);
+  color: var(--gray-900);
+  border-color: var(--gray-400);
+}
+
+/* ── Filter banner when scoped to a customer ── */
+.admin-filter-pill-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.admin-clear-filter-btn {
+  background: transparent;
+  border: none;
+  color: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  transition: all 0.15s ease;
+}
+
+.admin-clear-filter-btn:hover {
+  background: #dbeafe;
+  text-decoration: underline;
+}
+
+/* ── Messages Table Styles ── */
+.col-customer-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.customer-avatar-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #e0e7ff;
+  color: #4338ca;
+  font-weight: 700;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.customer-name-text {
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.col-message-content {
+  white-space: normal !important;
+  max-width: 480px;
+}
+
+.message-text-bubble {
+  background: #f8fafc;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--gray-800);
+  word-break: break-word;
+}
+
+.col-message-time {
+  white-space: nowrap;
+}
+
+.time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--gray-600);
+  background: var(--gray-100);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.col-msg-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
+/* ── Pagination Bar ── */
+.admin-pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  background: var(--gray-50);
+  border-top: 1px solid var(--gray-200);
+  border-radius: 0 0 10px 10px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.admin-pagination-info {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-600);
+}
+
+.admin-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-pagination-btn {
+  padding: 6px 14px;
+  background: #ffffff;
+  border: 1px solid var(--gray-300);
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-pagination-btn:hover:not(:disabled) {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: var(--blue-light);
+  transform: translateY(-1px);
+}
+
+.admin-pagination-btn:disabled {
+  background: var(--gray-100);
+  color: var(--gray-400);
+  border-color: var(--gray-200);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.admin-pagination-pages {
+  font-size: 13px;
+  color: var(--gray-600);
+}
+
+.admin-pagination-pages strong {
+  color: var(--gray-900);
+  font-weight: 700;
 }

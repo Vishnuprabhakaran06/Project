@@ -57,6 +57,8 @@ function App() {
   const [summaryError, setSummaryError] = useState(null);
 
   const [toast, setToast] = useState(null);
+  const [messageText, setMessageText] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
 
   // History filtering & pagination
@@ -153,10 +155,12 @@ function App() {
 
     load();
 
+
     return () => {
       cancelled = true;
     };
   }, [user]);
+
 
   // ── Refresh dashboard data ──────────────────────────────────
   const refreshData = async () => {
@@ -187,19 +191,45 @@ function App() {
     }
   };
 
-  // ── Simulate an API call ────────────────────────────────────
-  const recordUsage = async () => {
-    try {
-      await api.post("/api/request", null);
+  // // ── Simulate an API call ────────────────────────────────────
+  // const recordUsage = async () => {
+  //   try {
+  //     await api.post("/api/request", null);
 
+  //     await refreshData();
+
+  //     showToast("API call simulated successfully!");
+  //   } catch {
+  //     showToast(
+  //       "Failed to simulate API call.",
+  //       "error"
+  //     );
+  //   }
+  // };
+
+
+  const sendMessage = async (e) => {
+    e.preventDefault();
+
+    const message = messageText.trim();
+    if (!message || sendingMessage) return;
+
+    setSendingMessage(true);
+
+    try {
+      await api.post("/api/messages", { message });
+
+      setMessageText("");
       await refreshData();
 
-      showToast("API call simulated successfully!");
-    } catch {
+      showToast("Message sent successfully!");
+    } catch (err) {
       showToast(
-        "Failed to simulate API call.",
+        err?.response?.data?.detail || "Failed to send message.",
         "error"
       );
+    } finally {
+      setSendingMessage(false);
     }
   };
 
@@ -528,7 +558,46 @@ function App() {
             </div>
           )}
 
-          {/* ── Usage Hero Card ── */}
+          {/* ── Metrics Grid (Moved above Current Usage) ── */}
+          <div className="summary-grid">
+            <div className="card">
+              <span>Current Plan</span>
+              <strong>{summary.plan}</strong>
+            </div>
+
+            <div className="card">
+              <span>Monthly Base Price</span>
+              <strong>{fmt(summary.monthly_price)}</strong>
+            </div>
+
+            <div className="card">
+              <span>Remaining Usage</span>
+              <strong>{summary.remaining_usage}</strong>
+            </div>
+
+            <div className={`card ${isOver ? "card-danger" : ""}`}>
+              <span>Overage Requests</span>
+              <strong className={isOver ? "text-red" : ""}>
+                {summary.overage}
+              </strong>
+            </div>
+
+            <div className={`card ${isOver ? "card-danger" : ""}`}>
+              <span>Overage Rate</span>
+              <strong>
+                {fmt(currentPlan?.overage_price || 0)} / req
+              </strong>
+            </div>
+
+            <div className={`card ${isOver ? "card-danger" : ""}`}>
+              <span>Overage Cost</span>
+              <strong className={isOver ? "text-red" : ""}>
+                {fmt(summary.overage_cost)}
+              </strong>
+            </div>
+          </div>
+
+          {/* ── Usage Hero Card (Current Usage) ── */}
           <section
             className={`hero-card ${isOver
               ? "hero-over"
@@ -653,84 +722,56 @@ function App() {
               )}
             </div>
 
-            {/* ── Simulate API Call ── */}
-            <div className="hero-actions">
-              <button
-                id="simulate-api-btn"
-                className="usage-button"
-                onClick={recordUsage}
-              >
-                ⚡ Simulate API Call (demo)
-              </button>
+            {/* ── Message Input Section ── */}
+            <div className="message-input-section">
+              <div className="message-input-header">
+                <div className="message-input-title-group">
+                  <span className="message-input-icon">💬</span>
+                  <div>
+                    <label htmlFor="customer-message" className="message-input-label">
+                      Send Message
+                    </label>
+                    <p className="message-input-hint">
+                      Each submitted message records 
+                    </p>
+                  </div>
+                </div>
+                <span className="message-char-count">
+                  {messageText.length} / 5000
+                </span>
+              </div>
+
+              <form onSubmit={sendMessage} className="message-form">
+                <div className="message-textarea-wrapper">
+                  <textarea
+                    id="customer-message"
+                    className="message-textarea"
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    placeholder="Type your message here ..."
+                    rows={3}
+                    maxLength={5000}
+                    disabled={sendingMessage}
+                    required
+                  />
+                </div>
+
+                <div className="message-form-actions">
+                  <span className="message-status-note">
+                    {sendingMessage ? "⏳ Recording API call..." : "✨ Instant billing synchronization"}
+                  </span>
+
+                  <button
+                    type="submit"
+                    className="message-submit-button"
+                    disabled={!messageText.trim() || sendingMessage}
+                  >
+                    {sendingMessage ? "Sending..." : "Send Message"}
+                  </button>
+                </div>
+              </form>
             </div>
           </section>
-
-          {/* ── Metrics Grid ── */}
-          <div className="summary-grid">
-
-            <div className="card">
-              <span>Current Plan</span>
-              <strong>{summary.plan}</strong>
-            </div>
-
-            <div className="card">
-              <span>Monthly Base Price</span>
-              <strong>
-                {fmt(summary.monthly_price)}
-              </strong>
-            </div>
-
-            <div className="card">
-              <span>Remaining Usage</span>
-              <strong>
-                {summary.remaining_usage}
-              </strong>
-            </div>
-
-            <div
-              className={`card ${isOver ? "card-danger" : ""
-                }`}
-            >
-              <span>Overage Requests</span>
-
-              <strong
-                className={
-                  isOver ? "text-red" : ""
-                }
-              >
-                {summary.overage}
-              </strong>
-            </div>
-
-            <div
-              className={`card ${isOver ? "card-danger" : ""
-                }`}
-            >
-              <span>Overage Rate</span>
-
-              <strong>
-                {fmt(
-                  currentPlan?.overage_price || 0
-                )}{" "}
-                / req
-              </strong>
-            </div>
-
-            <div
-              className={`card ${isOver ? "card-danger" : ""
-                }`}
-            >
-              <span>Overage Cost</span>
-
-              <strong
-                className={
-                  isOver ? "text-red" : ""
-                }
-              >
-                {fmt(summary.overage_cost)}
-              </strong>
-            </div>
-          </div>
 
           {/* ── Estimated Invoice ── */}
           <section className="cost-summary-card">
@@ -804,7 +845,7 @@ function App() {
               <div>
                 <h2>Usage History</h2>
                 <p className="section-subtitle">
-                  Recent API activity and event logs with plan & cycle attribution
+                  Recent activity and event logs with plan & cycle attribution
                 </p>
               </div>
 
@@ -900,9 +941,8 @@ function App() {
 
                             <td>
                               <span
-                                className={`badge-plan ${
-                                  isCurrent ? "badge-plan-current" : "badge-plan-previous"
-                                }`}
+                                className={`badge-plan ${isCurrent ? "badge-plan-current" : "badge-plan-previous"
+                                  }`}
                                 title={isCurrent ? "Current active plan" : "Previous plan / cycle"}
                               >
                                 {recordPlan}

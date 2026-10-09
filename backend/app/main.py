@@ -14,6 +14,7 @@ from app.routes.tenant_routes import router as tenant_router
 from app.routes.subscription_routes import router as subscription_router
 from app.routes.usage_routes import router as usage_router
 from app.routes.api_routes import router as api_router
+from app.models.message import Message
 
 Base.metadata.create_all(bind=engine)
 

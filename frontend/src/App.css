@@ -345,13 +345,124 @@ body {
 }
 
 /* ── 8. Demo Button ── */
-.hero-actions {
-  display: flex;
-  justify-content: flex-end;
+/* ── 8. Message Composer & Input Section ── */
+.message-input-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--gray-200);
 }
 
-.usage-button {
-  padding: 10px 20px;
+.message-input-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.message-input-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.message-input-icon {
+  font-size: 18px;
+  background: var(--blue-light);
+  color: var(--blue);
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.message-input-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gray-900);
+  display: block;
+}
+
+.message-input-hint {
+  font-size: 12px;
+  color: var(--gray-500);
+  margin: 2px 0 0;
+}
+
+.message-char-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-500);
+  background: var(--gray-100);
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.message-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.message-textarea-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.message-textarea {
+  width: 100%;
+  min-height: 86px;
+  padding: 12px 16px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--gray-900);
+  background: #ffffff;
+  border: 1.5px solid var(--gray-300);
+  border-radius: 10px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+}
+
+.message-textarea::placeholder {
+  color: var(--gray-400);
+}
+
+.message-textarea:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.message-textarea:disabled {
+  background: var(--gray-50);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.message-form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.message-status-note {
+  font-size: 12px;
+  color: var(--gray-500);
+  font-weight: 500;
+}
+
+.message-submit-button {
+  padding: 10px 22px;
   border: none;
   border-radius: 8px;
   background: var(--blue);
@@ -361,16 +472,27 @@ body {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  transition: background-color 0.15s, transform 0.1s;
+  gap: 8px;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.12);
 }
 
-.usage-button:hover {
+.message-submit-button:hover:not(:disabled) {
   background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
 }
 
-.usage-button:active {
-  transform: scale(0.98);
+.message-submit-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.message-submit-button:disabled {
+  background: var(--gray-300);
+  color: var(--gray-500);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
 /* ── 6. Metrics Secondary Grid ── */
