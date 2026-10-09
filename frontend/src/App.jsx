@@ -83,10 +83,46 @@ function App() {
     setCurrentPage(1);
   };
 
+  // ── Logout ──────────────────────────────────────────────────
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+    setUser(null);
+  };
+
   const [user, setUser] = useState(() => {
+    const savedToken = localStorage.getItem("access_token");
     const savedUser = localStorage.getItem("user");
+    if (!savedToken || !savedUser) return null;
+
+    try {
+      const parts = savedToken.split(".");
+      if (parts.length === 3) {
+        const payload = JSON.parse(atob(parts[1]));
+        if (payload.exp && payload.exp * 1000 < Date.now()) {
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("user");
+          return null;
+        }
+      }
+    } catch {
+      // Ignore parse failure and proceed
+    }
+
     return savedUser ? JSON.parse(savedUser) : null;
   });
+
+  // Listen for global 401 token expiry from axios interceptor
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      handleLogout();
+    };
+
+    window.addEventListener("auth:expired", handleAuthExpired);
+    return () => {
+      window.removeEventListener("auth:expired", handleAuthExpired);
+    };
+  }, []);
 
   // ── Toast ────────────────────────────────────────────────────
   const showToast = (text, type = "success") => {
@@ -381,13 +417,6 @@ function App() {
     setUser(loggedInUser);
   };
 
-  // ── Logout ──────────────────────────────────────────────────
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("user");
-
-    setUser(null);
-  };
 
   // ── Email verification page ─────────────────────────────────
   const isVerifyEmailPage =

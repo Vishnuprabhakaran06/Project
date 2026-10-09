@@ -73,6 +73,12 @@ function AdminDashboard({ user, onLogout }) {
             setMessages(messagesResponse.data || []);
         } catch (err) {
             console.error("Failed to load admin data", err);
+            if (err?.response?.status === 401) {
+                if (onLogout) {
+                    onLogout();
+                }
+                return;
+            }
             setError(err?.response?.data?.detail || "Failed to load admin data.");
         } finally {
             setLoading(false);
