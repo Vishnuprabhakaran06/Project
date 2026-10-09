@@ -1058,3 +1058,265 @@ body {
 .text-blue {
   color: var(--blue) !important;
 }
+
+/* ======================================================
+   Responsive Design System for Customer Dashboard
+   ====================================================== */
+
+@media (max-width: 1024px) {
+  .dashboard {
+    padding: 32px 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 20px 16px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+  }
+
+  .header-title h1 {
+    font-size: 24px;
+  }
+
+  .tenant-selector {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .tenant-selector p {
+    font-size: 12px;
+    max-width: calc(100% - 95px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Usage Hero Card */
+  .hero-card {
+    padding: 20px 18px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+  }
+
+  .hero-top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  .hero-number {
+    font-size: 30px;
+  }
+
+  .hero-limit {
+    font-size: 17px;
+  }
+
+  .billing-period-card {
+    text-align: left;
+    width: 100%;
+    min-width: 0;
+    padding: 12px 14px;
+  }
+
+  /* Cost Summary Card */
+  .cost-summary-card {
+    padding: 20px 18px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+
+  .cost-summary-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* History Section */
+  .history-section {
+    padding: 20px 18px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+
+  .history-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .history-controls-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .history-date-filters {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .history-filter-field {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .history-date-input {
+    flex: 1;
+  }
+
+  .history-reset-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .history-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+    border: 1px solid var(--gray-200);
+  }
+
+  .history-table {
+    min-width: 580px;
+  }
+
+  /* Plans Grid */
+  .plans-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard {
+    padding: 16px 12px;
+  }
+
+  .header-title h1 {
+    font-size: 22px;
+  }
+
+  .header-subtitle {
+    font-size: 13px;
+  }
+
+  /* Summary Grid */
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .card {
+    padding: 14px 14px;
+  }
+
+  .card span {
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+
+  .card strong {
+    font-size: 17px;
+  }
+
+  /* Hero Card */
+  .hero-card {
+    padding: 16px 14px;
+  }
+
+  .hero-number {
+    font-size: 26px;
+  }
+
+  .hero-limit {
+    font-size: 15px;
+  }
+
+  .progress-overage-legend {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  /* Message Input */
+  .message-input-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .message-char-count {
+    align-self: flex-start;
+  }
+
+  .message-textarea {
+    min-height: 76px;
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+
+  .message-form-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .message-submit-button {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 16px;
+  }
+
+  /* Pagination Bar */
+  .history-pagination {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .pagination-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 400px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tenant-selector {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tenant-selector p {
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .tenant-selector button {
+    width: 100%;
+  }
+
+  .toast {
+    left: 12px;
+    right: 12px;
+    top: 12px;
+    text-align: center;
+  }
+}
