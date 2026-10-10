@@ -229,22 +229,6 @@ function App() {
     }
   };
 
-  // // ── Simulate an API call ────────────────────────────────────
-  // const recordUsage = async () => {
-  //   try {
-  //     await api.post("/api/request", null);
-
-  //     await refreshData();
-
-  //     showToast("API call simulated successfully!");
-  //   } catch {
-  //     showToast(
-  //       "Failed to simulate API call.",
-  //       "error"
-  //     );
-  //   }
-  // };
-
 
   const sendMessage = async (e) => {
     e.preventDefault();

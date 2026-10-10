@@ -35,14 +35,14 @@ def record_usage(
         detail="No active subscription found"
     )
 
-    if subscription.end_date:
-     from datetime import datetime
 
-    if datetime.utcnow() >= subscription.end_date:
-        raise HTTPException(
-            status_code=400,
-            detail="Your subscription has expired. Please choose a plan."
-        )
+    if subscription.end_date:
+        if datetime.utcnow() >= subscription.end_date:
+            raise HTTPException(
+                status_code=400,
+                detail="Your subscription has expired. Please choose a plan."
+            )
+
 
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
 

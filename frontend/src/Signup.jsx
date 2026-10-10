@@ -72,13 +72,7 @@ function Signup({ onSignup }) {
             Please check your inbox and click the verification link to activate your account.
           </p>
 
-          {/* <button
-            type="button"
-            className="auth-submit-btn"
-            onClick={onSignup}
-          >
-            Back to Login
-          </button> */}
+
         </div>
       </div>
     );
