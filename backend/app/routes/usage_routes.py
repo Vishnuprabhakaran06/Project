@@ -170,6 +170,7 @@ def get_usage_summary(
 
     return {
         "tenant_id": tenant_id,
+        "tenant_name": tenant.name if tenant else None,
         "plan": plan.name,
         "subscription_status": subscription_status,
         "total_usage": total_usage,

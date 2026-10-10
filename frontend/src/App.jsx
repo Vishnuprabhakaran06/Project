@@ -4,6 +4,7 @@ import Login from "./Login";
 import AdminDashboard from "./AdminDashboard";
 import Signup from "./Signup";
 import VerifyEmail from "./VerifyEmail";
+import EstimatedBillModal from "./EstimatedBillModal";
 import "./App.css";
 
 // ── helpers ───────────────────────────────────────────────────
@@ -60,6 +61,7 @@ function App() {
   const [messageText, setMessageText] = useState("");
   const [sendingMessage, setSendingMessage] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
+  const [showBillModal, setShowBillModal] = useState(false);
 
   // History filtering & pagination
   const [startDateFilter, setStartDateFilter] = useState("");
@@ -814,9 +816,20 @@ function App() {
                 </p>
               </div>
 
-              <span className="invoice-badge">
-                Current Cycle
-              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                <span className="invoice-badge">
+                  Current Cycle
+                </span>
+
+                <button
+                  type="button"
+                  className="btn-print-bill"
+                  onClick={() => setShowBillModal(true)}
+                  title="View and print estimated bill"
+                >
+                  🖨️ Print Estimated Bill
+                </button>
+              </div>
             </div>
 
             <div className="cost-breakdown-list">
@@ -1145,6 +1158,15 @@ function App() {
 
           </div>
         </section>
+      )}
+
+      {showBillModal && summary && (
+        <EstimatedBillModal
+          summary={summary}
+          currentPlan={currentPlan}
+          user={user}
+          onClose={() => setShowBillModal(false)}
+        />
       )}
 
     </div>
