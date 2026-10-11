@@ -39,6 +39,8 @@ function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 20;
 
+  const [planFilter, setPlanFilter] = useState("ALL");
+
   const handleStartDateChange = (e) => {
     setStartDateFilter(e.target.value);
     setCurrentPage(1);
@@ -52,6 +54,7 @@ function App() {
   const handleResetFilters = () => {
     setStartDateFilter("");
     setEndDateFilter("");
+    setPlanFilter("ALL");
     setCurrentPage(1);
   };
 
@@ -321,6 +324,12 @@ function App() {
   // ── Filtered & Paginated Usage ──────────────────────────────
   const filteredUsage = useMemo(() => {
     return recentUsage.filter((record) => {
+      // Filter by plan
+      const recordPlan = getRecordPlan(record);
+
+      if (planFilter !== "ALL" && recordPlan !== planFilter) {
+        return false;
+      }
       if (!record.created_at) return true;
       const recordDate = new Date(record.created_at);
 
@@ -338,7 +347,8 @@ function App() {
 
       return true;
     });
-  }, [recentUsage, startDateFilter, endDateFilter]);
+  }, [recentUsage, startDateFilter, endDateFilter, planFilter,
+    summary?.plan,]);
 
   const totalPages = Math.max(1, Math.ceil(filteredUsage.length / PAGE_SIZE));
   const safeCurrentPage = Math.min(currentPage, totalPages);
@@ -697,7 +707,7 @@ function App() {
                       Send Message
                     </label>
                     <p className="message-input-hint">
-                      Each submitted message records 
+                      Each submitted message records
                     </p>
                   </div>
                 </div>
@@ -856,7 +866,29 @@ function App() {
                   />
                 </div>
 
-                {(startDateFilter || endDateFilter) && (
+                <div className="history-filter-field">
+                  <label htmlFor="filter-plan">Plan</label>
+
+                  <select
+                    id="filter-plan"
+                    className="history-date-input"
+                    value={planFilter}
+                    onChange={(e) => {
+                      setPlanFilter(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <option value="ALL">All Plans</option>
+
+                    {plans.map((plan) => (
+                      <option key={plan.id} value={plan.name}>
+                        {plan.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {(startDateFilter || endDateFilter || planFilter !== "ALL") && (
                   <button
                     type="button"
                     className="history-reset-btn"
@@ -890,7 +922,6 @@ function App() {
                   <table className="history-table">
                     <thead>
                       <tr>
-                        <th>Record ID</th>
                         <th>Event Type</th>
                         <th>Plan</th>
                         <th>Timestamp</th>
@@ -905,10 +936,6 @@ function App() {
 
                         return (
                           <tr key={record.id}>
-                            <td className="id-cell">
-                              #{record.id}
-                            </td>
-
                             <td>
                               <span className="badge-event-type">
                                 {record.usage_type}

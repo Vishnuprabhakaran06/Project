@@ -583,7 +583,6 @@ function AdminDashboard({ user, onLogout }) {
                                             <th>Customer Messages</th>
                                             <th style={{ width: "200px" }}>Message Time</th>
                                             <th style={{ width: "110px" }}>Tenant ID</th>
-                                            <th style={{ width: "100px" }}>ID</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -621,13 +620,6 @@ function AdminDashboard({ user, onLogout }) {
                                                 <td>
                                                     <span className="col-tenant-id">
                                                         #{item.tenant_id}
-                                                    </span>
-                                                </td>
-
-                                                {/* Message ID */}
-                                                <td>
-                                                    <span className="col-msg-id">
-                                                        #{item.id}
                                                     </span>
                                                 </td>
                                             </tr>
