@@ -244,25 +244,6 @@ def get_recent_usage(
     ]
 
 
-@router.get("/{tenant_id}")
-def get_usage(
-    tenant_id: int,
-    db: Session = Depends(get_db)
-):
-    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
-
-    if not tenant:
-        raise HTTPException(
-            status_code=404,
-            detail="Tenant not found"
-        )
-
-    return (
-        db.query(UsageRecord)
-        .filter(UsageRecord.tenant_id == tenant_id)
-        .all()
-    )
-
 
 @router.get("/admin/summary")
 def get_admin_usage_summary(

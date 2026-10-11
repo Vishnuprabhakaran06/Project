@@ -8,7 +8,6 @@ from app.database import Base
 
 
 class UsageType(str, Enum):
-    REQUEST = "REQUEST"
     API_CALL = "API_CALL"
 
 

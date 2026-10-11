@@ -11,22 +11,9 @@ router = APIRouter(
 )
 
 
-@router.post("/")
-def create_tenant(
-    name: str,
+@router.get("/")
+def get_tenants(
     current_user: dict = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    tenant = Tenant(name=name)
-
-    db.add(tenant)
-    db.commit()
-    db.refresh(tenant)
-
-    return tenant
-
-
-@router.get("/")
-def get_tenants( current_user: dict = Depends(get_current_admin),
-    db: Session = Depends(get_db)):
-    return db.query(Tenant).all()
+    return db.query(Tenant).all()

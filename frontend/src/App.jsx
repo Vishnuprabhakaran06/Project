@@ -5,40 +5,10 @@ import AdminDashboard from "./AdminDashboard";
 import Signup from "./Signup";
 import VerifyEmail from "./VerifyEmail";
 import EstimatedBillModal from "./EstimatedBillModal";
+import { fmt, formatDate, formatDateTime } from "./utils";
 import "./App.css";
 
-// ── helpers ───────────────────────────────────────────────────
-const fmt = (n) => `₹${Number(n || 0).toFixed(2)}`;
 
-function formatDate(isoStr) {
-  if (!isoStr) return "";
-
-  const d = new Date(
-    isoStr + (isoStr.endsWith("Z") ? "" : "Z")
-  );
-
-  return d.toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function formatDateTime(isoStr) {
-  if (!isoStr) return "";
-
-  const d = new Date(
-    isoStr + (isoStr.endsWith("Z") ? "" : "Z")
-  );
-
-  return d.toLocaleString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
-}
 
 // Progress bar colour thresholds
 function progressColor(pct) {
@@ -343,29 +313,9 @@ function App() {
   };
 
   // ── Usage record plan attribution ───────────────────────────
-  const getRecordPlan = (record, allRecords) => {
-    if (record.plan) {
-      return record.plan;
-    }
-
-    if (summary?.billing_cycle?.cycle_start_datetime) {
-      const cycleStart = new Date(summary.billing_cycle.cycle_start_datetime);
-      const recordTime = new Date(record.created_at);
-      if (recordTime >= cycleStart) {
-        return summary.plan;
-      }
-    }
-
-    // Fallback: newest summary.total_usage records belong to current plan
-    if (summary?.total_usage != null && allRecords) {
-      const idx = allRecords.findIndex((r) => r.id === record.id);
-      if (idx >= 0 && idx < summary.total_usage) {
-        return summary.plan;
-      }
-    }
-
-    const otherPlan = plans.find((p) => p.name !== summary?.plan);
-    return otherPlan?.name || "Starter";
+  // Backend always populates record.plan; the field is used directly.
+  const getRecordPlan = (record) => {
+    return record.plan || summary?.plan || "Starter";
   };
 
   // ── Filtered & Paginated Usage ──────────────────────────────
@@ -950,7 +900,7 @@ function App() {
 
                     <tbody>
                       {paginatedUsage.map((record) => {
-                        const recordPlan = getRecordPlan(record, recentUsage);
+                        const recordPlan = getRecordPlan(record);
                         const isCurrent = recordPlan === summary?.plan;
 
                         return (

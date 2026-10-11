@@ -1,39 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
 import api from "./api";
+import { fmt, formatDate, formatDateTime } from "./utils";
 import "./AdminDashboard.css";
 
-const fmt = (n) => `₹${Number(n || 0).toFixed(2)}`;
 
-function formatDate(isoStr) {
-    if (!isoStr) return "-";
-    try {
-        const d = new Date(isoStr + (isoStr.endsWith("Z") ? "" : "Z"));
-        return d.toLocaleDateString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-        });
-    } catch {
-        return isoStr;
-    }
-}
-
-function formatDateTime(isoStr) {
-    if (!isoStr) return "-";
-    try {
-        const d = new Date(isoStr + (isoStr.endsWith("Z") ? "" : "Z"));
-        return d.toLocaleString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-        });
-    } catch {
-        return isoStr;
-    }
-}
 
 function AdminDashboard({ user, onLogout }) {
     const [tenants, setTenants] = useState([]);
