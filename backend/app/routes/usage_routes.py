@@ -23,17 +23,19 @@ def record_usage(
 ):
     tenant_id = current_user.get("tenant_id")
 
+    now = datetime.utcnow()
+
     subscription = (
-    db.query(Subscription)
-    .filter(
-        Subscription.tenant_id == tenant_id,
-        Subscription.start_date <= datetime.utcnow(),
-        (Subscription.end_date.is_(None)) |
-        (Subscription.end_date > datetime.utcnow())
+        db.query(Subscription)
+        .filter(
+            Subscription.tenant_id == tenant_id,
+            Subscription.start_date <= now,
+            (Subscription.end_date.is_(None)) |
+            (Subscription.end_date > now)
+        )
+        .order_by(Subscription.start_date.desc(), Subscription.id.desc())
+        .first()
     )
-    .order_by(Subscription.start_date.desc())
-    .first()
-)
 
     if not subscription:
      raise HTTPException(
@@ -92,17 +94,16 @@ def get_usage_summary(
     now = datetime.utcnow()
 
     subscription = (
-    db.query(Subscription)
-    .filter(
-        Subscription.tenant_id == tenant_id,
-        Subscription.start_date <= now,
-        (Subscription.end_date.is_(None)) |
-        (Subscription.end_date > now)
+        db.query(Subscription)
+        .filter(
+            Subscription.tenant_id == tenant_id,
+            Subscription.start_date <= now,
+            (Subscription.end_date.is_(None)) |
+            (Subscription.end_date > now)
+        )
+        .order_by(Subscription.start_date.desc(), Subscription.id.desc())
+        .first()
     )
-    .order_by(Subscription.start_date.desc())
-    .first()
-)
-
     if not subscription:
         raise HTTPException(
             status_code=404,
@@ -294,15 +295,15 @@ def get_admin_usage_summary(
     now = datetime.utcnow()
 
     subscriptions = (
-    db.query(Subscription)
-    .filter(
-        Subscription.start_date <= now,
-        (Subscription.end_date.is_(None)) |
-        (Subscription.end_date > now)
+        db.query(Subscription)
+        .filter(
+            Subscription.start_date <= now,
+            (Subscription.end_date.is_(None)) |
+            (Subscription.end_date > now)
+        )
+        .order_by(Subscription.start_date.desc(), Subscription.id.desc())
+        .all()
     )
-    .order_by(Subscription.start_date.desc())
-    .all()
-)
 
 
     result = []

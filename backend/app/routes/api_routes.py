@@ -37,7 +37,7 @@ def send_message(
             (Subscription.end_date.is_(None)) |
             (Subscription.end_date > now)
         )
-        .order_by(Subscription.start_date.desc())
+        .order_by(Subscription.start_date.desc(), Subscription.id.desc())
         .first()
     )
 

@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 import secrets
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -36,8 +37,21 @@ def signup(
             detail="Email already registered"
         )
 
+    company_name = data.company_name.strip()
+    existing_tenant = (
+        db.query(Tenant)
+        .filter(func.lower(Tenant.name) == company_name.lower())
+        .first()
+    )
+
+    if existing_tenant:
+        raise HTTPException(
+            status_code=400,
+            detail="Organization name already exists"
+        )
+
     tenant = Tenant(
-        name=data.company_name
+        name=company_name
     )
 
     db.add(tenant)

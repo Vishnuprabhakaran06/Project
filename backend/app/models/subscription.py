@@ -28,7 +28,7 @@ class Subscription(Base):
     start_date: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
-        default=lambda: datetime.now(timezone.utc)
+        default=lambda: datetime.utcnow().replace(microsecond=0)
     )
 
     end_date: Mapped[datetime | None] = mapped_column(

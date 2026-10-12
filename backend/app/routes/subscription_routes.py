@@ -59,7 +59,7 @@ def create_or_update_subscription(
             detail="Plan not found"
         )
 
-    now = datetime.utcnow()
+    now = datetime.utcnow().replace(microsecond=0)
 
     # Find the current active subscription
     current_subscription = (
@@ -70,7 +70,7 @@ def create_or_update_subscription(
             (Subscription.end_date.is_(None)) |
             (Subscription.end_date > now)
         )
-        .order_by(Subscription.start_date.desc())
+        .order_by(Subscription.start_date.desc(), Subscription.id.desc())
         .first()
     )
 
@@ -120,7 +120,7 @@ def get_all_subscriptions(
 
     subscriptions = (
         db.query(Subscription)
-        .order_by(Subscription.start_date.desc())
+        .order_by(Subscription.start_date.desc(), Subscription.id.desc())
         .all()
     )
 

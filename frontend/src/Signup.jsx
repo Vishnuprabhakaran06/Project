@@ -84,7 +84,7 @@ function Signup({ onSignup }) {
         <div className="auth-header">
           <div className="auth-brand-badge">⚡ SaaS Billing</div>
           <h2 className="auth-title">Create your account</h2>
-          <p className="auth-subtitle">Start monitoring API usage and billing in minutes</p>
+          <p className="auth-subtitle">Start tracking usage and billing in minutes</p>
         </div>
 
         <form className="auth-form" onSubmit={handleSignup}>

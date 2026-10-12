@@ -73,30 +73,34 @@ function CustomerDashboard({ user, onLogout }) {
             setRecentUsage([]);
 
             try {
-                const [sumRes, recentRes] = await Promise.all([
+                const [sumResult, recentResult] = await Promise.allSettled([
                     api.get("/usage/summary"),
                     api.get("/usage/recent?limit=200"),
                 ]);
 
                 if (cancelled) return;
 
-                if (sumRes.data.subscription_status === "EXPIRED") {
-                    setSummaryError("You have no active subscription.");
+                if (sumResult.status === "fulfilled") {
+                    if (sumResult.value.data.subscription_status === "EXPIRED") {
+                        setSummary(null);
+                        setSummaryError("You have no active subscription.");
+                    } else {
+                        setSummary(sumResult.value.data);
+                        setSummaryError(null);
+                    }
                 } else {
-                    setSummary(sumRes.data);
+                    const detail = sumResult.reason?.response?.data?.detail;
+                    setSummary(null);
+                    setSummaryError(
+                        detail === "Subscription not found"
+                            ? "You have no active subscription."
+                            : "Could not load usage summary. Please try again."
+                    );
                 }
 
-                setRecentUsage(recentRes.data || []);
-            } catch (err) {
-                if (cancelled) return;
-
-                const detail = err?.response?.data?.detail;
-
-                setSummaryError(
-                    detail === "Subscription not found"
-                        ? "You have no active subscription."
-                        : "Could not load usage summary. Please try again."
-                );
+                if (recentResult.status === "fulfilled") {
+                    setRecentUsage(recentResult.value.data || []);
+                }
             } finally {
                 if (!cancelled) setLoading(false);
             }
@@ -111,30 +115,34 @@ function CustomerDashboard({ user, onLogout }) {
 
     const refreshData = async () => {
         try {
-            const [sumRes, recentRes] = await Promise.all([
+            const [sumResult, recentResult] = await Promise.allSettled([
                 api.get("/usage/summary"),
                 api.get("/usage/recent?limit=200"),
             ]);
 
-            if (sumRes.data.subscription_status === "EXPIRED") {
-                setSummary(null);
-                setSummaryError("You have no active subscription.");
+            if (sumResult.status === "fulfilled") {
+                if (sumResult.value.data.subscription_status === "EXPIRED") {
+                    setSummary(null);
+                    setSummaryError("You have no active subscription.");
+                } else {
+                    setSummary(sumResult.value.data);
+                    setSummaryError(null);
+                }
             } else {
-                setSummary(sumRes.data);
-                setSummaryError(null);
+                const detail = sumResult.reason?.response?.data?.detail;
+                setSummary(null);
+                setSummaryError(
+                    detail === "Subscription not found"
+                        ? "You have no active subscription."
+                        : "Could not load usage summary. Please try again."
+                );
             }
 
-            setRecentUsage(recentRes.data || []);
+            if (recentResult.status === "fulfilled") {
+                setRecentUsage(recentResult.value.data || []);
+            }
         } catch (err) {
-            const detail = err?.response?.data?.detail;
-
-            if (detail === "Subscription not found") {
-                setSummary(null);
-                setRecentUsage([]);
-                setSummaryError("You have no active subscription.");
-            } else {
-                console.error("Failed to refresh data", err);
-            }
+            console.error("Failed to refresh data", err);
         }
     };
 
@@ -162,6 +170,8 @@ function CustomerDashboard({ user, onLogout }) {
     };
 
     const changePlan = async (planId) => {
+        const hadActivePlan = summary !== null;
+
         try {
             await api.post("/subscriptions/", null, {
                 params: { plan_id: planId },
@@ -170,19 +180,20 @@ function CustomerDashboard({ user, onLogout }) {
             await refreshData();
 
             showToast(
-                summary
+                hadActivePlan
                     ? "Plan switched successfully!"
                     : "Plan purchased successfully!"
             );
         } catch (err) {
-            console.error("Failed to purchase/switch plan:", err);
-
+            console.error("Failed to change plan:", err);
             showToast(
-                err?.response?.data?.detail || "Failed to purchase plan.",
+                err?.response?.data?.detail || "Failed to change plan.",
                 "error"
             );
         }
     };
+
+
 
     const pct =
         summary && summary.plan_limit > 0
