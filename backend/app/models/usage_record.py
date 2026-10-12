@@ -35,3 +35,7 @@ class UsageRecord(Base):
         nullable=False,
         default=lambda: datetime.now(timezone.utc)
     )
+    subscription_id: Mapped[int | None] = mapped_column(
+    ForeignKey("subscriptions.id"),
+    nullable=True
+)

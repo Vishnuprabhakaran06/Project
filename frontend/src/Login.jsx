@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "./api";
 import "./Login.css";
 
@@ -8,6 +9,7 @@ function Login({ onLogin, onSignup }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -27,6 +29,12 @@ function Login({ onLogin, onSignup }) {
       localStorage.setItem("user", JSON.stringify(user));
 
       onLogin(user);
+
+      if (user.role === "ADMIN") {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
     } catch (err) {
       setError(
         err?.response?.data?.detail ||

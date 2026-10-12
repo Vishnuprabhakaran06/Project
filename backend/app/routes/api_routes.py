@@ -26,25 +26,27 @@ def send_message(
     db: Session = Depends(get_db)
 ):
     tenant_id = current_user.get("tenant_id")
-
-    # Check active subscription
-    subscription = db.query(Subscription).filter(
-        Subscription.tenant_id == tenant_id
-    ).first()
-
+    
     now = datetime.utcnow()
 
-    if (
-        not subscription
-        or not subscription.start_date
-        or not subscription.end_date
-        or subscription.start_date > now
-        or subscription.end_date <= now
-    ):
+    subscription = (
+        db.query(Subscription)
+        .filter(
+            Subscription.tenant_id == tenant_id,
+            Subscription.start_date <= now,
+            (Subscription.end_date.is_(None)) |
+            (Subscription.end_date > now)
+        )
+        .order_by(Subscription.start_date.desc())
+        .first()
+    )
+
+    if not subscription:
         raise HTTPException(
             status_code=403,
             detail="Active subscription required. Please choose a plan."
         )
+
 
     message_text = request.message.strip()
 
@@ -65,9 +67,10 @@ def send_message(
 
         # Record usage only after message is saved successfully
         usage = UsageRecord(
-            tenant_id=tenant_id,
-            usage_type="API_CALL"
-        )
+        tenant_id=tenant_id,
+        subscription_id=subscription.id,
+        usage_type="API_CALL"
+)
         db.add(usage)
 
         # Save both records together
@@ -82,12 +85,13 @@ def send_message(
             "usage_type": usage.usage_type
         }
 
-    except Exception:
-        db.rollback()
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to save message"
-        )
+    except Exception as e:
+      db.rollback()
+      print("send_message error:", repr(e))
+    raise HTTPException(
+        status_code=500,
+        detail="Failed to save message"
+    )
 
 
 @router.get("/messages")

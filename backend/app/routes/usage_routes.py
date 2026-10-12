@@ -25,7 +25,13 @@ def record_usage(
 
     subscription = (
     db.query(Subscription)
-    .filter(Subscription.tenant_id == tenant_id)
+    .filter(
+        Subscription.tenant_id == tenant_id,
+        Subscription.start_date <= datetime.utcnow(),
+        (Subscription.end_date.is_(None)) |
+        (Subscription.end_date > datetime.utcnow())
+    )
+    .order_by(Subscription.start_date.desc())
     .first()
 )
 
@@ -54,6 +60,7 @@ def record_usage(
 
     usage = UsageRecord(
         tenant_id=tenant_id,
+        subscription_id=subscription.id,
         usage_type=usage_type
     )
 
@@ -82,11 +89,19 @@ def get_usage_summary(
             detail="Tenant not found"
         )
 
+    now = datetime.utcnow()
+
     subscription = (
-        db.query(Subscription)
-        .filter(Subscription.tenant_id == tenant_id)
-        .first()
+    db.query(Subscription)
+    .filter(
+        Subscription.tenant_id == tenant_id,
+        Subscription.start_date <= now,
+        (Subscription.end_date.is_(None)) |
+        (Subscription.end_date > now)
     )
+    .order_by(Subscription.start_date.desc())
+    .first()
+)
 
     if not subscription:
         raise HTTPException(
@@ -136,15 +151,13 @@ def get_usage_summary(
     )
 
     total_usage = (
-        db.query(UsageRecord)
-        .filter(
-            UsageRecord.tenant_id == tenant_id,
-            UsageRecord.created_at >= cycle_start_datetime,
-            UsageRecord.created_at < cycle_end_datetime
-        )
-        .count()
+    db.query(UsageRecord)
+    .filter(
+        UsageRecord.tenant_id == tenant_id,
+        UsageRecord.subscription_id == subscription.id
     )
-
+    .count()
+)
     # Usage calculations
     plan_limit = plan.request_limit
 
@@ -189,6 +202,7 @@ def get_usage_summary(
     }
 
 
+
 @router.get("/recent")
 def get_recent_usage(
     current_user: dict = Depends(get_current_customer),
@@ -196,7 +210,10 @@ def get_recent_usage(
     db: Session = Depends(get_db)
 ):
     tenant_id = current_user.get("tenant_id")
-    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+
+    tenant = db.query(Tenant).filter(
+        Tenant.id == tenant_id
+    ).first()
 
     if not tenant:
         raise HTTPException(
@@ -204,44 +221,67 @@ def get_recent_usage(
             detail="Tenant not found"
         )
 
-    subscription = (
-        db.query(Subscription)
-        .filter(Subscription.tenant_id == tenant_id)
-        .first()
-    )
-
-    current_plan_name = None
-    cycle_start = None
-    if subscription:
-        plan = db.query(Plan).filter(Plan.id == subscription.plan_id).first()
-        if plan:
-            current_plan_name = plan.name
-        cycle_start = subscription.start_date
-
     records = (
         db.query(UsageRecord)
         .filter(UsageRecord.tenant_id == tenant_id)
-        .order_by(UsageRecord.created_at.desc())
+        .order_by(
+            UsageRecord.created_at.desc(),
+            UsageRecord.id.desc()
+        )
         .limit(limit)
         .all()
     )
 
-    all_plans = db.query(Plan).all()
-    other_plan = next((p.name for p in all_plans if p.name != current_plan_name), "Starter")
+    result = []
 
-    return [
-        {
+    for r in records:
+        plan_name = None
+        usage_number = None
+
+        if r.subscription_id is not None:
+            subscription = (
+                db.query(Subscription)
+                .filter(Subscription.id == r.subscription_id)
+                .first()
+            )
+
+            if subscription:
+                plan = (
+                    db.query(Plan)
+                    .filter(Plan.id == subscription.plan_id)
+                    .first()
+                )
+
+                if plan:
+                    plan_name = plan.name
+
+                usage_number = (
+                    db.query(UsageRecord)
+                    .filter(
+                        UsageRecord.tenant_id == tenant_id,
+                        UsageRecord.subscription_id == r.subscription_id,
+                        (
+                            (UsageRecord.created_at < r.created_at)
+                            | (
+                                (UsageRecord.created_at == r.created_at)
+                                & (UsageRecord.id <= r.id)
+                            )
+                        )
+                    )
+                    .count()
+                )
+
+        result.append({
             "id": r.id,
+            "subscription_id": r.subscription_id,
+            "usage_number": usage_number,
             "usage_type": r.usage_type,
             "created_at": r.created_at.isoformat(),
-            "plan": (
-                current_plan_name
-                if (cycle_start and r.created_at >= cycle_start)
-                else other_plan
-            )
-        }
-        for r in records
-    ]
+            "plan": plan_name
+        })
+
+    return result
+
 
 
 
@@ -250,10 +290,20 @@ def get_admin_usage_summary(
     current_user: dict = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
+   
+    now = datetime.utcnow()
+
     subscriptions = (
-        db.query(Subscription)
-        .all()
+    db.query(Subscription)
+    .filter(
+        Subscription.start_date <= now,
+        (Subscription.end_date.is_(None)) |
+        (Subscription.end_date > now)
     )
+    .order_by(Subscription.start_date.desc())
+    .all()
+)
+
 
     result = []
 
@@ -282,15 +332,16 @@ def get_admin_usage_summary(
         else:
             cycle_end = datetime.utcnow()
 
+        
         total_usage = (
-            db.query(UsageRecord)
-            .filter(
-                UsageRecord.tenant_id == tenant_id,
-                UsageRecord.created_at >= cycle_start,
-                UsageRecord.created_at < cycle_end
-            )
+             db.query(UsageRecord)
+                .filter(
+                    UsageRecord.tenant_id == tenant_id,
+                    UsageRecord.subscription_id == subscription.id
+                   )
             .count()
         )
+
 
         plan_limit = plan.request_limit
 

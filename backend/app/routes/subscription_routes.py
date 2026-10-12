@@ -30,6 +30,7 @@ def add_one_month(date_value):
         day=day
     )
 
+
 @router.post("/")
 def create_or_update_subscription(
     plan_id: int,
@@ -37,7 +38,10 @@ def create_or_update_subscription(
     db: Session = Depends(get_db)
 ):
     tenant_id = current_user.get("tenant_id")
-    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+
+    tenant = db.query(Tenant).filter(
+        Tenant.id == tenant_id
+    ).first()
 
     if not tenant:
         raise HTTPException(
@@ -45,7 +49,9 @@ def create_or_update_subscription(
             detail="Tenant not found"
         )
 
-    plan = db.query(Plan).filter(Plan.id == plan_id).first()
+    plan = db.query(Plan).filter(
+        Plan.id == plan_id
+    ).first()
 
     if not plan:
         raise HTTPException(
@@ -53,40 +59,42 @@ def create_or_update_subscription(
             detail="Plan not found"
         )
 
-    subscription = (
+    now = datetime.utcnow()
+
+    # Find the current active subscription
+    current_subscription = (
         db.query(Subscription)
-        .filter(Subscription.tenant_id == tenant_id)
+        .filter(
+            Subscription.tenant_id == tenant_id,
+            Subscription.start_date <= now,
+            (Subscription.end_date.is_(None)) |
+            (Subscription.end_date > now)
+        )
+        .order_by(Subscription.start_date.desc())
         .first()
     )
 
-    if subscription:
-        start_date = datetime.utcnow()
-        end_date = add_one_month(start_date)
+    # Close the current subscription
+    if current_subscription:
+        current_subscription.end_date = now
 
-        subscription.plan_id = plan_id
-        subscription.start_date = start_date
-        subscription.end_date = end_date
-
-        db.commit()
-        db.refresh(subscription)
-
-        return subscription
-
-    start_date = datetime.utcnow()
+    # Create a new subscription
+    start_date = now
     end_date = add_one_month(start_date)
 
-    subscription = Subscription(
-    tenant_id=tenant_id,
-    plan_id=plan_id,
-    start_date=start_date,
-    end_date=end_date
-)
+    new_subscription = Subscription(
+        tenant_id=tenant_id,
+        plan_id=plan_id,
+        start_date=start_date,
+        end_date=end_date
+    )
 
-    db.add(subscription)
+    db.add(new_subscription)
     db.commit()
-    db.refresh(subscription)
+    db.refresh(new_subscription)
 
-    return subscription
+    return new_subscription
+
 
 
 @router.get("/")
@@ -102,13 +110,17 @@ def get_subscriptions(
         .all()
     )
 
+
 @router.get("/admin")
 def get_all_subscriptions(
     current_user: dict = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
+    now = datetime.utcnow()
+
     subscriptions = (
         db.query(Subscription)
+        .order_by(Subscription.start_date.desc())
         .all()
     )
 
@@ -130,11 +142,12 @@ def get_all_subscriptions(
         if not tenant or not plan:
             continue
 
-        status = "ACTIVE"
-
-        if subscription.end_date:
-            if datetime.utcnow() >= subscription.end_date:
-                status = "EXPIRED"
+        if subscription.start_date and subscription.start_date > now:
+            status = "UPCOMING"
+        elif subscription.end_date and subscription.end_date <= now:
+            status = "EXPIRED"
+        else:
+            status = "ACTIVE"
 
         result.append({
             "tenant_id": tenant.id,
